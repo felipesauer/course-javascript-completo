@@ -1,1 +1,1 @@
-# course-javascript-curso-completo
+# course-javascript-completo
