@@ -22,6 +22,6 @@ export class Display {
   }
 
   replaceOperatorWithSymbol(text) {
-    return text.replace(/[÷/]/g, { '/': '÷' });
+    return text.replace(/[÷]/g, (match) => ({ '÷': '/' }[match]));
   }
 }

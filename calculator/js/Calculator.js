@@ -100,8 +100,8 @@ export class Calculator extends Display {
     let currentValue = [];
     let newKeyboardList = [];
 
-    this.keyboardList.forEach((value) => {
-      if (!this.operators.includes(value)) currentValue.push(value);
+    this.keyboardList.forEach((value, index) => {
+      if ((index == 0 && value == '-') || !this.operators.includes(value)) currentValue.push(value);
       else {
         newKeyboardList.push(currentValue.join(''));
         newKeyboardList.push(value);
@@ -142,7 +142,7 @@ export class Calculator extends Display {
 
   calculatorByOperatorPercentage() {
     const [lastKeyboard, lastOperator, lastButOne] = this.getKeyboardAtListAtGivenPoint(3).reverse();
-    const calcPercentage = 0;
+    let calcPercentage = 0;
     if (lastOperator == '*') calcPercentage = Number(lastKeyboard) / 100;
     else calcPercentage = Number(lastButOne) * (Number(lastKeyboard) / 100);
 
@@ -154,7 +154,7 @@ export class Calculator extends Display {
     const isFirstNumberAndInformedZero = this.isFirstNumberAndInformedZero();
 
     if (isFirstNumberAndInformedZero) {
-      if (value == '0' || (value == '0' && this.keyboardList[0].slice(-1) == '.')) return;
+      if (value == '0') return;
       else this.resetKeyboardList(true);
     }
 
@@ -174,15 +174,16 @@ export class Calculator extends Display {
       return;
     }
 
-    if (value == '%') {
-      if (isFirstNumberAndInformedZero || this.operators.includes(lastKeyboard)) return;
+    if (this.operators.includes(lastKeyboard)) return;
 
+    if (value == '%') {
       if (this.keyboardList.length == 1) {
         this.resetAllCalculator();
         return;
       }
 
-      value = String(this.calculatorByOperatorPercentage());
+      const calcPercentage = String(this.calculatorByOperatorPercentage());
+      this.setFlowKeyboardList(calcPercentage);
     }
 
     this.setFlowKeyboardList(value);
@@ -201,8 +202,9 @@ export class Calculator extends Display {
     if (this.isFirstNumberAndInformedZero()) return;
 
     const removeLastCaractere = this.removeGivenPointCaractere(1);
+    const keyboardListLengthIsZero = this.keyboardList.length - 1 == 0;
 
-    if (!removeLastCaractere.length && this.keyboardList.length - 1 == 0) this.resetAllCalculator();
+    if (!removeLastCaractere.length && keyboardListLengthIsZero) this.resetAllCalculator();
     else if (!removeLastCaractere.length) this.removeLastKeyboardAtList();
     else this.replaceLastValueKeyboardAtList(removeLastCaractere);
 
@@ -214,14 +216,22 @@ export class Calculator extends Display {
   }
 
   onClickKeyboardEqual() {
-    if (this.lastKeyboardIsOperator()) {
-      if (this.keyboardList.length == 1)
-        this.resetAllCalculator();
-      else
-        this.replicateLastKeyboardAtList();
+    if (this.keyboardList.length > 1 && this.lastKeyboardIsOperator()) {
+      const bkpOperator = this.keyboardList.slice(-1);
+
+      this.keyboardList.pop();
+      const value = this.calculatorKeyboardList();
+
+      this.keyboardList = [String(value), bkpOperator, String(value)];
     }
 
-    if (this.lastKeyboardIsPoint()) this.replaceLastValueKeyboardAtList(this.removeGivenPointCaractere(1));
+    if (this.lastKeyboardIsPoint())
+      this.replaceLastValueKeyboardAtList(this.removeGivenPointCaractere(1));
+
+    if (this.keyboardList.length == 1 && (Number(this.keyboardList[0]) == 0 || this.keyboardList[0] == '-')) {
+      this.resetAllCalculator();
+      return;
+    }
 
     const value = this.calculatorKeyboardList();
 
